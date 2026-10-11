@@ -1,0 +1,29 @@
+{
+    "name": "systonia/waypoint-export-fixed",
+    "description": "Fixed-width record files for waypoint-export: #[Fixed] column layouts, Windows-1252 or EBCDIC, for legacy-system interfaces.",
+    "type": "library",
+    "license": ["MIT", "Apache-2.0"],
+    "require": {
+        "php": ">=8.5",
+        "systonia/waypoint": "^1.4.1",
+        "systonia/waypoint-export": "^1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.3",
+        "phpstan/phpstan": "^2.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Waypoint\\Export\\Fixed\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Waypoint\\Export\\Fixed\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit --testdox",
+        "stan": "phpstan analyse"
+    }
+}
