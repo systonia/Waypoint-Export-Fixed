@@ -2,7 +2,6 @@
 
 namespace Waypoint\Export\Fixed;
 
-use Waypoint\Container;
 use Waypoint\Export\{Cells, ExportPlugin, Writers};
 use Waypoint\Plugin\PluginBase;
 
@@ -22,11 +21,9 @@ final class FixedWidthPlugin extends PluginBase
         return [ExportPlugin::class];
     }
 
-    public function boot(Container $container): void
+    public function boot(Cells $cells, Writers $writers, FixedWidthOptions $options): void
     {
-        $cells = $container->get(Cells::class);
-        $options = $container->get(FixedWidthOptions::class);
-        $container->get(Writers::class)
+        $writers
             ->add(new FixedWidthWriter($cells, $options, 'txt'))
             ->add(new FixedWidthWriter($cells, $options, 'fixed'));
     }
