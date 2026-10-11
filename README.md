@@ -1,6 +1,6 @@
 # waypoint-export-fixed
 
-Fixed-width record files for [waypoint-export](../Waypoint-Export): the interface format of
+Fixed-width record files for [waypoint-export](https://github.com/systonia/Waypoint-Export): the interface format of
 host systems, AS/400 batches and old ERP importers. Each column gets a `#[Fixed]` layout, the
 writer cuts and pads, and the file goes out in Windows-1252, UTF-8 or an EBCDIC code page.
 
