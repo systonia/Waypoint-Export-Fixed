@@ -6,8 +6,11 @@ use Waypoint\Export\{Cells, ExportPlugin, Writers};
 use Waypoint\Plugin\PluginBase;
 
 /**
- * Register after ExportPlugin: `$app->plugin(new FixedWidthPlugin())`. Adds the
- * fixed-width writer for `.txt` files and as `format: 'fixed'`.
+ * Adds fixed-width record files to the export plugin.
+ *
+ * Register it after ExportPlugin: `$app->plugin(new FixedWidthPlugin())`. A Sheet
+ * named `*.txt`, or created with `format: 'fixed'`, is then written by
+ * FixedWidthWriter.
  */
 final class FixedWidthPlugin extends PluginBase
 {
@@ -21,6 +24,7 @@ final class FixedWidthPlugin extends PluginBase
         return [ExportPlugin::class];
     }
 
+    /** Registers the writer twice in the export plugin's Writers registry: as `txt` and as `fixed`. */
     public function boot(Cells $cells, Writers $writers, FixedWidthOptions $options): void
     {
         $writers

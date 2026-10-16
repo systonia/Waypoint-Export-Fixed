@@ -4,6 +4,8 @@ Fixed-width record files for [waypoint-export](https://github.com/systonia/Waypo
 host systems, AS/400 batches and old ERP importers. Each column gets a `#[Fixed]` layout, the
 writer cuts and pads, and the file goes out in Windows-1252, UTF-8 or an EBCDIC code page.
 
+**Documentation:** [docs/](docs/index.md) — [guides](docs/guides/index.md) to record layouts, the file format and testing, and the [reference](docs/reference/index.md).
+
 ## Setup
 
 ```php
@@ -53,7 +55,7 @@ then cut to the width and padded. Line breaks inside a value become spaces.
 | `encoding` | `'Windows-1252'` | Or `'UTF-8'`, any mbstring encoding, or an EBCDIC page from built-in tables: `cp037`, `cp273` (German hosts), `cp500`, `cp1140`. |
 | `lineEnding` | `"\r\n"` | `''` for a block file where records are known only by their length. |
 | `header` | `false` | Write the labels as a first record. |
-| `recordLength` | `null` | Pad or cut every record to this length. |
+X
 
 ## Development
 

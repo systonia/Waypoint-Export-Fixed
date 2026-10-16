@@ -5,9 +5,17 @@ namespace Waypoint\Export\Fixed;
 use InvalidArgumentException;
 use Waypoint\Export\{Cells, Sheet, Writer};
 
-/** Answers to the `txt` extension (or `format: 'fixed'` via the alias registered by the plugin). Every column needs a #[Fixed] layout. */
+/**
+ * Writes a Sheet as fixed-width records, one per row.
+ *
+ * It answers to the `txt` extension (or `format: 'fixed'` via the second instance the
+ * plugin registers). Every column needs a #[Fixed] layout. Values are turned into text
+ * by Cells (ExportOptions), cut and padded to their field, joined into a record and
+ * encoded as FixedWidthOptions says.
+ */
 final class FixedWidthWriter implements Writer
 {
+    /** @param string $extension the format name this instance answers to */
     public function __construct(private readonly Cells $cells, private readonly FixedWidthOptions $options, private readonly string $extension = 'txt')
     {
     }
@@ -17,6 +25,7 @@ final class FixedWidthWriter implements Writer
         return $this->extension;
     }
 
+    /** `text/plain` with the configured encoding as charset, lowercased: `text/plain; charset=windows-1252`. */
     public function contentType(): string
     {
         return 'text/plain; charset=' . strtolower($this->options->encoding);
@@ -67,6 +76,13 @@ final class FixedWidthWriter implements Writer
         };
     }
 
+    /**
+     * One field: line breaks become spaces, then the value is cut to the width and padded.
+     *
+     * ```php
+     * FixedWidthWriter::field('42', new Fixed(5, 'right', '0'));   // '00042'
+     * ```
+     */
     public static function field(string $value, Fixed $layout): string
     {
         $value = mb_substr(str_replace(["\r", "\n"], ' ', $value), 0, $layout->width);
