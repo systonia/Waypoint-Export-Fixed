@@ -29,8 +29,7 @@ Output encoding: 'Windows-1252', 'UTF-8', any mbstring encoding, or an EBCDIC co
 ### $lineEnding
 
 ```php
-public string $lineEnding = '
-';
+public string $lineEnding = "\r\n";
 ```
 
 Record terminator, CR LF by default; "\n" for Unix hosts, '' for a pure block file where records are only known by their length. It is encoded like the data.
