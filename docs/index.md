@@ -6,7 +6,7 @@ order: 1
 
 Many host systems, AS/400 batches and older ERP importers read their interface files as fixed-width records: every field has a set width and position, there are no separators and no quoting, and the file comes in a single-byte encoding such as Windows-1252 or an EBCDIC code page. `systonia/waypoint-export-fixed` adds that format to [Waypoint Export](https://github.com/systonia/Waypoint-Export).
 
-A route returns a `Sheet` as it would for a CSV or XLSX download. Each column carries a [`#[Fixed]`](reference/Waypoint/Export/Fixed/Fixed.md) layout — width, alignment, fill character — and the writer turns every row into one record: values formatted, cut to their width, padded, joined, and encoded.
+A route returns a `Sheet` as it would for a CSV or XLSX download. Each column carries a [`#[Fixed]`](reference/Waypoint/Export/Fixed/Fixed.md) layout (width, alignment, fill character), and the writer turns every row into one record: values formatted, cut to their width, padded, joined, and encoded.
 
 ## Install
 

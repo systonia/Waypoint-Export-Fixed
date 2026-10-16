@@ -55,11 +55,11 @@ Ebcdic::convert('Aü', 'cp273');   // "\xC1\xD0"
 
 **Parameters**
 
-- `$utf8` `string` — the text, UTF-8 encoded
-- `$encoding` `string` — a name supports() accepts, such as 'cp273', 'IBM037' or 'EBCDIC-500'
+- `$utf8` `string`: the text, UTF-8 encoded
+- `$encoding` `string`: a name supports() accepts, such as 'cp273', 'IBM037' or 'EBCDIC-500'
 
-**Returns** `string` — the EBCDIC bytes, one per character
+**Returns** `string`: the EBCDIC bytes, one per character
 
 **Throws**
 
-- [`InvalidArgumentException`](https://www.php.net/manual/en/class.invalidargumentexception.php) — when $encoding is not a known EBCDIC code page
+- [`InvalidArgumentException`](https://www.php.net/manual/en/class.invalidargumentexception.php): when $encoding is not a known EBCDIC code page

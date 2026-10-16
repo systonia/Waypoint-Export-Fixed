@@ -73,10 +73,10 @@ public function __construct(
 
 **Parameters**
 
-- `$width` `int` — the field's width in characters, at least 1
-- `$align` `string` — 'left' (text) or 'right' (numbers): the side the value sits on
-- `$pad` `string` — exactly one character that fills the rest of the field
+- `$width` `int`: the field's width in characters, at least 1
+- `$align` `string`: 'left' (text) or 'right' (numbers): the side the value sits on
+- `$pad` `string`: exactly one character that fills the rest of the field
 
 **Throws**
 
-- [`InvalidArgumentException`](https://www.php.net/manual/en/class.invalidargumentexception.php) — when an argument is outside these rules
+- [`InvalidArgumentException`](https://www.php.net/manual/en/class.invalidargumentexception.php): when an argument is outside these rules

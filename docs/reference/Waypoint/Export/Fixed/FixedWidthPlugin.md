@@ -37,7 +37,7 @@ Short unique name ('i18n'): the plan namespace for its route data, and the prefi
 public function requires(): array
 ```
 
-**Returns** `list<class-string<Plugin>>` — Plugins that must be registered before this one.
+**Returns** `list<class-string<Plugin>>`: Plugins that must be registered before this one.
 
 ### boot()
 

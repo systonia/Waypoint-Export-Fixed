@@ -1,6 +1,6 @@
 ---
 title: File format
-description: FixedWidthOptions — the encoding (Windows-1252, UTF-8, EBCDIC), line endings, a header record and a fixed record length.
+description: FixedWidthOptions sets the encoding (Windows-1252, UTF-8, EBCDIC), line endings, a header record and a fixed record length.
 order: 20
 ---
 
@@ -54,14 +54,14 @@ IBM mainframes and IBM i (AS/400) systems use EBCDIC, where even letters and dig
 
 The name is matched loosely: a prefix `cp`, `ibm` or `ebcdic` in any case, then the number, so `'cp273'`, `'IBM273'`, `'IBM-273'` and `'EBCDIC-273'` all select cp273. A bare `'273'` is not an EBCDIC name.
 
-The conversion goes through Latin-1 (for cp1140: Windows-1252, which has the euro sign). A character outside it — `€` in cp037, cp273 and cp500, or any character beyond Western European scripts — becomes `?`, which is `0x6F` in EBCDIC.
+The conversion goes through Latin-1 (for cp1140: Windows-1252, which has the euro sign). A character outside it (`€` in cp037, cp273 and cp500, or any character beyond Western European scripts) becomes `?`, which is `0x6F` in EBCDIC.
 
 ```php
 use Waypoint\Export\Fixed\Ebcdic;
 
 bin2hex(Ebcdic::convert('A1 ü', 'cp273'));   // 'c1f140d0'
 bin2hex(Ebcdic::convert('A€', 'cp1140'));    // 'c19f'
-bin2hex(Ebcdic::convert('A€', 'cp273'));     // 'c16f' — no euro in cp273
+bin2hex(Ebcdic::convert('A€', 'cp273'));     // 'c16f': no euro in cp273
 Ebcdic::supports('EBCDIC-500');              // true
 ```
 
@@ -81,7 +81,7 @@ For a block file, all records must have the same length, which the field widths 
 
 ## A fixed record length
 
-Some interfaces define a record length larger than the fields actually used — 120 or 256 characters with a reserved tail. `recordLength` pads every record with spaces to that length:
+Some interfaces define a record length larger than the fields actually used, such as 120 or 256 characters with a reserved tail. `recordLength` pads every record with spaces to that length:
 
 ```php
 $app->configure(fn(FixedWidthOptions $fixed) => $fixed->recordLength = 120);

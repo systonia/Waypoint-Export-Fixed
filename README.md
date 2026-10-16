@@ -4,7 +4,7 @@ Fixed-width record files for [waypoint-export](https://github.com/systonia/Waypo
 host systems, AS/400 batches and old ERP importers. Each column gets a `#[Fixed]` layout, the
 writer cuts and pads, and the file goes out in Windows-1252, UTF-8 or an EBCDIC code page.
 
-**Documentation:** [docs/](docs/index.md) — [guides](docs/guides/index.md) to record layouts, the file format and testing, and the [reference](docs/reference/index.md).
+**Documentation:** [docs/](docs/index.md), with [guides](docs/guides/index.md) to record layouts, the file format and testing, and the [reference](docs/reference/index.md).
 
 ## Setup
 

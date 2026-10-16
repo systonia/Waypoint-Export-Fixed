@@ -69,7 +69,7 @@ new Fixed(width: 8, align: 'right', pad: '0');   // defaults: align 'left', pad 
 | `align` | `'left'` or `'right'` | `'left'` for text, `'right'` for numbers |
 | `pad` | exactly one character | `' '` for text, `'0'` for numbers with leading zeros |
 
-Anything else throws an `InvalidArgumentException` when the `Fixed` object is created — for an attribute, that is when `columnsOf()` reads the class.
+Anything else throws an `InvalidArgumentException` when the `Fixed` object is created. For an attribute, that is when `columnsOf()` reads the class.
 
 ## Without a row class
 

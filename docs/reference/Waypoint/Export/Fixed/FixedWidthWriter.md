@@ -36,7 +36,7 @@ public function __construct(
 
 - `$cells` `\Waypoint\Export\Cells`
 - `$options` [`FixedWidthOptions`](FixedWidthOptions.md)
-- `$extension` `string` — the format name this instance answers to
+- `$extension` `string`: the format name this instance answers to
 
 ### extension()
 
@@ -64,7 +64,7 @@ public function contentType(): string
 public function stream(\Waypoint\Export\Sheet $sheet): iterable
 ```
 
-The file, chunk by chunk -- a generator, so a large export never sits in memory twice.
+The file, chunk by chunk: a generator, so a large export never sits in memory twice.
 
 **Parameters**
 
