@@ -98,18 +98,18 @@ $app->configure(fn(FixedWidthOptions $fixed) => $fixed->header = true);
 ```
 
 ```php
-Sheet::file('customers.txt')
-    ->column('customer', 'Cust')->meta(new Fixed(8, 'right', '0'))
-    ->column('name', 'Name')->meta(new Fixed(20))
-    ->column('amount', 'Amount')->meta(new Fixed(10, 'right'))
-    ->rows([['customer' => 42, 'name' => 'Müller GmbH', 'amount' => 1234.5]]);
+Sheet::file('stock.dat', format: 'fixed')
+    ->column('id', 'Art')->meta(new Fixed(4, 'right', '0'))
+    ->column('name', 'Name')->meta(new Fixed(14))
+    ->column('stock', 'Qty')->meta(new Fixed(3, 'right', '0'))
+    ->rows([['id' => 2, 'name' => 'Dinkelbrötchen', 'stock' => 30]]);
 ```
 
 ```text
-0000CustName                    Amount
-00000042Müller GmbH             1234,5
+0ArtName          Qty
+0002Dinkelbrötchen030
 ```
 
-The labels follow the layouts exactly: a right-aligned field puts its label on the right, and the fill character fills the label's field too. Most legacy interfaces expect no header, so it is off by default.
+The labels follow the layouts exactly: a right-aligned field puts its label on the right, and the fill character fills the label's field too. Most tills and host interfaces expect no header, so it is off by default.
 
 See also: [`FixedWidthOptions`](../reference/Waypoint/Export/Fixed/FixedWidthOptions.md), [`Ebcdic`](../reference/Waypoint/Export/Fixed/Ebcdic.md), [Record layouts](layouts.md).

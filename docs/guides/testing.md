@@ -17,29 +17,39 @@ use Waypoint\Export\{ExportOptions, ExportPlugin};
 use Waypoint\Export\Fixed\FixedWidthPlugin;
 use Waypoint\Testing\TestCase;
 
-final class BookingExportTest extends TestCase
+final class TillControllerTest extends TestCase
 {
-    public function testBookingsAreWrittenAsFixedWidthRecords(): void
+    public function testThePickupsAreWrittenAsFixedWidthRecords(): void
     {
         $app = $this->app();
         $app->plugin(new ExportPlugin());
         $app->plugin(new FixedWidthPlugin());
-        $app->configure(fn(ExportOptions $export) => $export->dateFormat = 'Ymd');
-        $app->attach([BookingExportController::class]);
+        $app->configure(fn (ExportOptions $export) => $export->dateFormat = 'Ymd');
+        $app->attach([TillController::class]);
 
-        $this->get('/exports/bookings.txt')
+        $this->get('/backoffice/pickups.txt')
             ->assertOk()
             ->assertContentType('text/plain; charset=windows-1252')
-            ->assertHeader('Content-Disposition', 'attachment; filename="bookings.txt"; filename*=UTF-8\'\'bookings.txt')
+            ->assertHeader('Content-Disposition', 'attachment; filename="pickups.txt"; filename*=UTF-8\'\'pickups.txt')
             ->assertBody(
-                "00000042M\xFCller GmbH             1234,520260301\r\n"
-                . "00000007Schr\xF6der & S\xF6hne Han    -80,2520260302\r\n"
+                "3f9a1c07b220261017Lena Sch\xE4fer    0004Butter croissant  006   10,8\r\n"
+                . "3f9a1c07b220261017Lena Sch\xE4fer    0001Sourdough loaf    001    5,2\r\n"
+                . "a04e6d915c20261017Maximilian Gro\xDFm0003Lye pretzel       012   14,4\r\n"
             );
     }
 }
 ```
 
-The expected body is written as bytes: `\xFC` is `ü` and `\xF6` is `ö` in Windows-1252. Writing the test in the encoding of the file catches a wrong `encoding` setting, which a test with `encoding = 'UTF-8'` would not.
+The test uses `TillController` from the [overview](../index.md#a-first-export). For the route behind `#[Role('owner')]` in the bakery's back office, with `JWTOptions` configured, the request carries the owner's token:
+
+```php
+$this->request('GET', '/backoffice/pickups.txt')
+    ->withJwt(['sub' => 1, 'role' => 'owner'])
+    ->send()
+    ->assertOk();
+```
+
+The expected body is written as bytes: `\xE4` is `ä` and `\xDF` is `ß` in Windows-1252. Writing the test in the encoding of the file catches a wrong `encoding` setting, which a test with `encoding = 'UTF-8'` would not.
 
 For an EBCDIC file, compare hex strings; they are easier to read in a failure than raw bytes:
 
@@ -49,7 +59,7 @@ $app->configure(function (FixedWidthOptions $fixed) {
     $fixed->lineEnding = '';
 });
 
-$this->assertSame('f0f0f0f0f0f0f4f2', substr(bin2hex($this->get('/exports/bookings.txt')->body()), 0, 16));   // "00000042"
+$this->assertSame('f386f981f183f0f782f2', substr(bin2hex($this->get('/backoffice/pickups.txt')->body()), 0, 20));   // "3f9a1c07b2"
 ```
 
 ## The writer alone
@@ -63,9 +73,9 @@ use PHPUnit\Framework\TestCase;
 use Waypoint\Export\{Cells, ExportOptions, Sheet};
 use Waypoint\Export\Fixed\{FixedWidthOptions, FixedWidthWriter};
 
-final class BookingLayoutTest extends TestCase
+final class PickupLineTest extends TestCase
 {
-    public function testTheRecordIsFortySixCharactersLong(): void
+    public function testTheRecordIsSixtySixCharactersLong(): void
     {
         $export = new ExportOptions();
         $export->dateFormat = 'Ymd';
@@ -73,13 +83,13 @@ final class BookingLayoutTest extends TestCase
         $options->encoding = 'UTF-8';
         $writer = new FixedWidthWriter(new Cells($export), $options);
 
-        $sheet = Sheet::file('bookings.txt')
-            ->columnsOf(Booking::class)
-            ->rows([new Booking(42, 'Müller GmbH', 1234.5, new DateTimeImmutable('2026-03-01'))]);
+        $sheet = Sheet::file('pickups.txt')
+            ->columnsOf(PickupLine::class)
+            ->rows([new PickupLine('3f9a1c07b2', new DateTimeImmutable('2026-10-17'), 'Lena Schäfer', 4, 'Butter croissant', 6, 10.8)]);
         $records = iterator_to_array($writer->stream($sheet), false);
 
-        $this->assertSame(["00000042Müller GmbH             1234,520260301\r\n"], $records);
-        $this->assertSame(46, mb_strlen(rtrim($records[0], "\r\n")));
+        $this->assertSame(["3f9a1c07b220261017Lena Schäfer    0004Butter croissant  006   10,8\r\n"], $records);
+        $this->assertSame(66, mb_strlen(rtrim($records[0], "\r\n")));
     }
 }
 ```
@@ -87,7 +97,7 @@ final class BookingLayoutTest extends TestCase
 One field is checked with the static `FixedWidthWriter::field()`, which applies a layout to one value:
 
 ```php
-$this->assertSame('000042', FixedWidthWriter::field('42', new Fixed(6, 'right', '0')));
+$this->assertSame('0004', FixedWidthWriter::field('4', new Fixed(4, 'right', '0')));
 ```
 
 ## What to cover

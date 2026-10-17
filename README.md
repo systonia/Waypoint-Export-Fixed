@@ -15,34 +15,53 @@ $app->plugin(new Waypoint\Export\Fixed\FixedWidthPlugin());   // after the base 
 
 ## Usage
 
+The day's pickups of a bakery, as the records its till imports:
+
 ```php
+use Waypoint\Attributes\{Get, Role};
 use Waypoint\Export\{Column, Sheet};
 use Waypoint\Export\Fixed\Fixed;
 
-final class Satz
+final class PickupLine
 {
-    #[Column('Kundennummer')]
-    #[Fixed(8, align: 'right', pad: '0')]
-    public int $kunde;
-
-    #[Column('Name')]
-    #[Fixed(30)]
-    public string $name;
-
-    #[Column('Betrag')]
-    #[Fixed(11, align: 'right')]
-    public float $betrag;
+    public function __construct(
+        #[Column('Order')]
+        #[Fixed(10)]
+        public string $code,
+        #[Column('Article')]
+        #[Fixed(
+            4,
+            align: 'right',
+            pad: '0'
+        )]
+        public int $product,
+        #[Column('Quantity')]
+        #[Fixed(
+            3,
+            align: 'right',
+            pad: '0'
+        )]
+        public int $quantity,
+        #[Column('Amount')]
+        #[Fixed(
+            7,
+            align: 'right'
+        )]
+        public float $amount,
+    ) {
+    }
 }
 
-#[Get('/lieferung.txt')]
-public function lieferung(): Sheet
+#[Get('/pickups.txt')]
+#[Role('owner')]
+public function pickups(): Sheet
 {
-    return Sheet::file('lieferung.txt')->columnsOf(Satz::class)->rows($this->saetze());
+    return Sheet::file('pickups.txt')->columnsOf(PickupLine::class)->rows($this->pickupLines());
 }
 ```
 
-`.txt` selects the writer; any other extension works with `Sheet::file('x.dat', format: 'fixed')`.
-Without a row class, attach layouts by hand: `->column('kunde', 'Kundennummer')->meta(new Fixed(8, 'right', '0'))`.
+`.txt` selects the writer; any other extension works with `Sheet::file('stock.dat', format: 'fixed')`.
+Without a row class, attach layouts by hand: `->column('product', 'Article')->meta(new Fixed(4, 'right', '0'))`.
 A column without a layout is an error, not a guess.
 
 Values are formatted by the base plugin's `ExportOptions` (decimal separator, date format, boolean words),
@@ -55,7 +74,7 @@ then cut to the width and padded. Line breaks inside a value become spaces.
 | `encoding` | `'Windows-1252'` | Or `'UTF-8'`, any mbstring encoding, or an EBCDIC page from built-in tables: `cp037`, `cp273` (German hosts), `cp500`, `cp1140`. |
 | `lineEnding` | `"\r\n"` | `''` for a block file where records are known only by their length. |
 | `header` | `false` | Write the labels as a first record. |
-X
+| `recordLength` | `null` | Pad or cut every record to this many characters. |
 
 ## Development
 

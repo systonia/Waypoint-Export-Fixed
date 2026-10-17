@@ -14,48 +14,82 @@ The usual place for the layout is a row class: `#[Column]` from Waypoint Export 
 use Waypoint\Export\Column;
 use Waypoint\Export\Fixed\Fixed;
 
-final class Payment
+/** One line of an order, as the till reads it. */
+final class PickupLine
 {
     public function __construct(
-        #[Column('Account')]
+        #[Column('Order')]
+        #[Fixed(10)]
+        public string $code,
+        #[Column('Pickup')]
+        #[Fixed(8)]
+        public DateTimeImmutable $pickup,
+        #[Column('Customer')]
+        #[Fixed(16)]
+        public string $customer,
+        #[Column('Article')]
         #[Fixed(
-            10,
+            4,
             align: 'right',
             pad: '0'
         )]
-        public int $account,
-        #[Column('Payee')]
-        #[Fixed(27)]
-        public string $payee,
-        #[Column('Due')]
-        #[Fixed(8)]
-        public DateTimeImmutable $due,
+        public int $product,
+        #[Column('Name')]
+        #[Fixed(18)]
+        public string $name,
+        #[Column('Quantity')]
+        #[Fixed(
+            3,
+            align: 'right',
+            pad: '0'
+        )]
+        public int $quantity,
+        #[Column('Amount')]
+        #[Fixed(
+            7,
+            align: 'right'
+        )]
         public float $amount,
-        #[Column('Reference')]
-        #[Fixed(35)]
-        public ?string $reference = null,
+        public bool $paid = false,
     ) {
     }
 }
 ```
 
+In the bakery's back office, the owner downloads the open orders for the till. The route sits next to the other exports of `BackofficeController` and turns every line of an `Order` into a `PickupLine`:
+
 ```php
-#[Get('/payments.txt')]
-public function payments(): Sheet
+#[Get('/pickups.txt')]
+#[Role('owner')]
+public function pickups(): Sheet
 {
-    return Sheet::file('payments.txt')
-        ->columnsOf(Payment::class)
-        ->rows($this->payments->open());
+    $lines = [];
+    foreach ($this->orders->open() as $order) {
+        foreach ($order->lines as $line) {
+            $lines[] = new PickupLine(
+                $order->code,
+                new DateTimeImmutable($order->pickupDate),
+                $order->customerName,
+                $line->product,
+                $line->name,
+                $line->quantity,
+                $line->totalCents() / 100,
+            );
+        }
+    }
+    return Sheet::file('pickups.txt')
+        ->columnsOf(PickupLine::class)
+        ->rows($lines);
 }
 ```
 
-With `ExportOptions::$dateFormat` set to `'Ymd'`, a payment becomes an 80-character record:
+With `ExportOptions::$dateFormat` set to `'Ymd'`, six croissants for Lena Schäfer become a 66-character record:
 
 ```text
-0000012345Stadtwerke                 20261101                                   
+3f9a1c07b220261017Lena Schäfer    0004Butter croissant  006   10,8
 ```
 
-Promoted constructor properties, as above, and plain properties work the same way. A property without `#[Column]`, like `$amount`, is not a field; a value closure can still use it ([below](#amounts-signs-and-implied-decimals)). The record layout is the order of the properties in the class: moving a property moves its field in the file.
+Promoted constructor properties, as above, and plain properties work the same way. A property without `#[Column]`, like `$paid`, is not a field; a value closure can still use it ([below](#amounts-signs-and-implied-decimals)). The record layout is the order of the properties in the class: moving a property moves its field in the file.
 
 ## The three arguments
 
@@ -76,18 +110,20 @@ Anything else throws an `InvalidArgumentException` when the `Fixed` object is cr
 A `Sheet` built column by column gets its layouts through `meta()`, which attaches an object to the column added last:
 
 ```php
-#[Get('/host.dat')]
-public function host(): Sheet
+#[Get('/stock.dat')]
+#[Role('owner')]
+public function stock(): Sheet
 {
-    return Sheet::file('host.dat', format: 'fixed')
-        ->column('account', 'Account')->meta(new Fixed(6, 'right', '0'))
-        ->column('text', 'Text', fn(array $row): string => mb_strtoupper($row['text']))->meta(new Fixed(10))
-        ->rows([['account' => 815, 'text' => 'Gebühr']]);
+    return Sheet::file('stock.dat', format: 'fixed')
+        ->column('id', 'Article')->meta(new Fixed(4, 'right', '0'))
+        ->column('name', 'Name', fn (array $row): string => mb_strtoupper($row['name']))->meta(new Fixed(14))
+        ->column('stock', 'Stock')->meta(new Fixed(3, 'right', '0'))
+        ->rows([['id' => 2, 'name' => 'Dinkelbrötchen (4)', 'stock' => 30]]);
 }
 ```
 
 ```text
-000815GEBÜHR    
+0002DINKELBRÖTCHEN030
 ```
 
 A column reads the row's array key or public property of the same name; with a closure as third argument, the closure computes the value from the row. Because `meta()` always goes to the last column, `Sheet::columns([...])`, which adds several columns at once, leaves all but the last without a layout; use one `column()` call per field.
@@ -128,29 +164,30 @@ Then the writer builds the field:
 ```php
 use Waypoint\Export\Fixed\{Fixed, FixedWidthWriter};
 
-FixedWidthWriter::field('Müller GmbH', new Fixed(8));          // 'Müller G'
-FixedWidthWriter::field('42', new Fixed(6, 'right', '0'));     // '000042'
-FixedWidthWriter::field("Line 1\nLine 2", new Fixed(14));     // 'Line 1 Line 2 '
+FixedWidthWriter::field('Butter croissant', new Fixed(8));       // 'Butter c'
+FixedWidthWriter::field('4', new Fixed(4, 'right', '0'));         // '0004'
+FixedWidthWriter::field("No nuts,\nplease", new Fixed(16));       // 'No nuts, please '
 ```
 
 ## Amounts, signs and implied decimals
 
-The fill character goes in front of the whole text, sign included: `-3` in `new Fixed(6, 'right', '0')` becomes `0000-3`. Many interfaces instead expect amounts in the smallest currency unit with the sign first, or a separate sign field. Compute such fields in a value closure:
+The fill character goes in front of the whole text, sign included: `-3` in `new Fixed(6, 'right', '0')` becomes `0000-3`. Many tills and order systems instead expect amounts in cents with the sign in a field of its own, here for a cancelled order that goes to the till as a refund. Compute such fields in a value closure:
 
 ```php
-Sheet::file('payments.txt')
-    ->column('account', 'Account')->meta(new Fixed(10, 'right', '0'))
-    ->column('cents', 'Amount', fn(Payment $p): string => sprintf('%011d', (int) round($p->amount * 100)))->meta(new Fixed(11))
-    ->column('sign', 'Sign', fn(Payment $p): string => $p->amount < 0 ? 'S' : 'H')->meta(new Fixed(1))
-    ->rows($payments);
+Sheet::file('till.txt')
+    ->column('code', 'Order')->meta(new Fixed(10))
+    ->column('cents', 'Amount', fn (PickupLine $l): string => sprintf('%07d', (int) round(abs($l->amount) * 100)))->meta(new Fixed(7))
+    ->column('sign', 'Sign', fn (PickupLine $l): string => $l->amount < 0 ? '-' : '+')->meta(new Fixed(1))
+    ->column('paid', 'Paid', fn (PickupLine $l): string => $l->paid ? 'J' : 'N')->meta(new Fixed(1))
+    ->rows($lines);
 ```
 
 ```text
-0000000001-0000008025S
-000000000200000001230H
+a04e6d915c0001440+N
+c71b0e4a280000360-J
 ```
 
-`sprintf('%011d', -8025)` gives `-0000008025`: eleven characters, zero-filled after the sign, so the field needs no padding.
+`sprintf('%07d', 1440)` gives `0001440`: seven characters, zero-filled, so the field needs no padding. `$paid` has no `#[Column]` and still feeds the last field.
 
 ## Width is counted in characters
 
@@ -165,26 +202,29 @@ The writer checks every column before the first record and stops with an `Invali
 The export plugin picks the writer by the file's extension, or by `format:` when given:
 
 ```php
-Sheet::file('bookings.txt');                     // the fixed-width writer, by extension
-Sheet::file('BUCHUNG.DAT', format: 'fixed');     // any other name
-Sheet::file('export', format: 'fixed');          // a name without extension
+Sheet::file('pickups.txt');                      // the fixed-width writer, by extension
+Sheet::file('STOCK.DAT', format: 'fixed');       // any other name
+Sheet::file('till', format: 'fixed');            // a name without extension
 ```
 
-The extension is lowercased, so `BUCHUNG.TXT` works too; a `format:` must be lowercase letters and digits, or `Sheet::file()` throws. The download always gets `Content-Disposition: attachment` with the file name, `Cache-Control: no-store` and `Content-Type: text/plain` with the [encoding](file-format.md#encoding) as charset. In the OpenAPI spec, a route returning `Sheet` lists `text/plain` among its content types.
+The extension is lowercased, so `PICKUPS.TXT` works too; a `format:` must be lowercase letters and digits, or `Sheet::file()` throws. The download always gets `Content-Disposition: attachment` with the file name, `Cache-Control: no-store` and `Content-Type: text/plain` with the [encoding](file-format.md#encoding) as charset. In the OpenAPI spec, a route returning `Sheet` lists `text/plain` among its content types.
 
 ## Large files
 
-The writer produces the file one record at a time. With a generator as `rows()`, a large export never holds all rows in memory:
+The writer produces the file one record at a time. With a generator as `rows()`, each `PickupLine` is built when its record is written, so the export never holds a list of all lines next to the orders; with a generator over a database cursor, it never holds all orders either:
 
 ```php
-#[Get('/bookings.txt')]
-public function bookings(): Sheet
+#[Get('/pickups.txt')]
+#[Role('owner')]
+public function pickups(): Sheet
 {
-    return Sheet::file('bookings.txt')
-        ->columnsOf(Booking::class)
+    return Sheet::file('pickups.txt')
+        ->columnsOf(PickupLine::class)
         ->rows((function () {
-            foreach ($this->bookings->cursor() as $record) {
-                yield new Booking($record['customer'], $record['name'], $record['amount'], new DateTimeImmutable($record['booked']));
+            foreach ($this->orders->open() as $order) {
+                foreach ($order->lines as $line) {
+                    yield new PickupLine($order->code, new DateTimeImmutable($order->pickupDate), $order->customerName, $line->product, $line->name, $line->quantity, $line->totalCents() / 100);
+                }
             }
         })());
 }

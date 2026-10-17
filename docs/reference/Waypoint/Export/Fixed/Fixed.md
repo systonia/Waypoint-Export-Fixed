@@ -18,13 +18,13 @@ what fills the rest. Put it next to #[Column] on a row class, or attach it with
 `Sheet::column(...)->meta(new Fixed(12))`. Longer values are cut to the width.
 
 ```php
-#[Column('Customer')]
+#[Column('Article')]
 #[Fixed(
-    8,
+    4,
     align: 'right',
     pad: '0'
 )]
-public int $customer;
+public int $product;
 ```
 
 ## Properties
