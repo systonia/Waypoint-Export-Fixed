@@ -84,7 +84,7 @@ For a block file, all records must have the same length, which the field widths 
 Some interfaces define a record length larger than the fields actually used, such as 120 or 256 characters with a reserved tail. `recordLength` pads every record with spaces to that length:
 
 ```php
-$app->configure(fn(FixedWidthOptions $fixed) => $fixed->recordLength = 120);
+$app->configure(fn (FixedWidthOptions $fixed) => $fixed->recordLength = 120);
 ```
 
 A record longer than `recordLength` is cut to it, so fields beyond that length are lost. Without `recordLength`, a record is as long as the sum of its field widths. The line ending comes after, and does not count towards the length.
@@ -94,7 +94,7 @@ A record longer than `recordLength` is cut to it, so fields beyond that length a
 With `header = true`, the first record holds the column labels, each placed in its field like a value (cut, padded, aligned):
 
 ```php
-$app->configure(fn(FixedWidthOptions $fixed) => $fixed->header = true);
+$app->configure(fn (FixedWidthOptions $fixed) => $fixed->header = true);
 ```
 
 ```php

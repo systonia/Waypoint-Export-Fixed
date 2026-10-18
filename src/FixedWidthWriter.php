@@ -43,7 +43,7 @@ final class FixedWidthWriter implements Writer
             $layouts[] = $layout;
         }
         if ($this->options->header) {
-            yield $this->record(array_map(fn(array $c): string => $c['label'], $columns), $layouts);
+            yield $this->record(array_map(fn (array $c): string => $c['label'], $columns), $layouts);
         }
         foreach ($sheet->getRows() as $row) {
             yield $this->record(array_map($this->cells->text(...), $this->cells->row($columns, $row)), $layouts);

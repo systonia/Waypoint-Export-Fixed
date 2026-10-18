@@ -15,7 +15,7 @@ final class PluginTest extends TestCase
         $app = $this->app();
         $app->plugin(new ExportPlugin());
         $app->plugin(new FixedWidthPlugin());
-        $app->configure(fn(FixedWidthOptions $o) => $o->encoding = 'UTF-8');
+        $app->configure(fn (FixedWidthOptions $o) => $o->encoding = 'UTF-8');
         $app->attach([SatzController::class]);
 
         $this->get('/lieferung.txt')
