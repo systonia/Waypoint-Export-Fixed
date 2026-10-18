@@ -3,27 +3,10 @@
 namespace Waypoint\Export\Fixed\Tests;
 
 use RuntimeException;
-use Waypoint\Attributes\{Controller, Get};
-use Waypoint\Export\{ExportPlugin, Sheet, Writers};
+use Waypoint\Export\{ExportPlugin, Writers};
 use Waypoint\Export\Fixed\{FixedWidthOptions, FixedWidthPlugin};
 use Waypoint\OpenAPI\OpenAPIGenerator;
 use Waypoint\Testing\TestCase;
-
-#[Controller]
-class SatzController
-{
-    #[Get('/lieferung.txt')]
-    public function txt(): Sheet
-    {
-        return Sheet::file('lieferung.txt')->columnsOf(Satz::class)->rows([new Satz(42, 'Müller', 1234.5)]);
-    }
-
-    #[Get('/lieferung.dat')]
-    public function dat(): Sheet
-    {
-        return Sheet::file('lieferung.dat', 'fixed')->columnsOf(Satz::class)->rows([new Satz(1, 'A', 1.0)]);
-    }
-}
 
 final class PluginTest extends TestCase
 {
