@@ -53,10 +53,7 @@ final class Ebcdic
     {
         $page = self::page($encoding) ?? throw new InvalidArgumentException("Unknown EBCDIC code page '$encoding'; known: " . implode(', ', array_keys(self::TABLES)) . '.');
         $latin = mb_convert_encoding($utf8, $page === 'cp1140' ? 'Windows-1252' : 'ISO-8859-1', 'UTF-8');
-        $from = '';
-        for ($i = 0; $i < 256; $i++) {
-            $from .= chr($i);
-        }
+        $from = implode('', array_map(chr(...), range(0, 255)));
         return strtr($latin, $from, (string) hex2bin(self::TABLES[$page]));
     }
 

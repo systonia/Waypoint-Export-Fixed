@@ -61,7 +61,8 @@ final class FixedWidthWriter implements Writer
             $record .= self::field($value, $layouts[$i]);
         }
         if ($this->options->recordLength !== null) {
-            $record = mb_substr($record . str_repeat(' ', max(0, $this->options->recordLength - mb_strlen($record))), 0, $this->options->recordLength);
+            $length = $this->options->recordLength;
+            $record = mb_substr(mb_str_pad($record, $length), 0, $length);
         }
         return $this->encode($record . $this->options->lineEnding);
     }
@@ -86,7 +87,7 @@ final class FixedWidthWriter implements Writer
     public static function field(string $value, Fixed $layout): string
     {
         $value = mb_substr(str_replace(["\r", "\n"], ' ', $value), 0, $layout->width);
-        $fill = str_repeat($layout->pad, $layout->width - mb_strlen($value));
-        return $layout->align === 'right' ? $fill . $value : $value . $fill;
+        $side = $layout->align === 'right' ? STR_PAD_LEFT : STR_PAD_RIGHT;
+        return mb_str_pad($value, $layout->width, $layout->pad, $side);
     }
 }
